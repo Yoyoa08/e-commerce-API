@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from app import models
 from app.database import engine
-from app.routers import products, users
+from app.routers import products, users, auth
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="E-Commerce API")
 
+app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(products.router)
 
