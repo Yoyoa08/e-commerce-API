@@ -8,14 +8,15 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
-# app/schemas.py
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     email: EmailStr
+    is_admin: bool
     created_at: datetime
+
 
 # -----------------------------
 # PRODUCT SCHEMAS
@@ -65,6 +66,32 @@ class OrderResponse(BaseModel):
     items: list[OrderItemResponse]
 
 
+
+class CartItemAdd(BaseModel):
+    product_id: int
+    quantity: int = 1
+
+
+class CartItemUpdate(BaseModel):
+    quantity: int
+
+
+class CartItemResponse(BaseModel):
+    id: int
+    product_id: int
+    quantity: int
+    product: ProductResponse
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CartResponse(BaseModel):
+    id: int
+    user_id: int
+    items: list[CartItemResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
 # -----------------------------
 # AUTH / TOKEN SCHEMAS
 # -----------------------------
@@ -74,3 +101,4 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: int | None = None
+
