@@ -30,6 +30,7 @@ class Product(Base):
 
     owner = relationship("User")
 
+
 class Cart(Base):
     __tablename__ = "carts"
 

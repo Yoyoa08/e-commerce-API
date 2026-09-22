@@ -34,7 +34,7 @@ def add_to_cart(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(oauth2.get_current_user)
 ):
-    # Verify product exists and has sufficient stock
+    # Verify product exists and has stock
     product = db.query(models.Product).filter(models.Product.id == item_in.product_id).first()
     if not product:
         raise HTTPException(
