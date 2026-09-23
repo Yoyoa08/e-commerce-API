@@ -1,13 +1,11 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-# -----------------------------
 # USER SCHEMAS
-# -----------------------------
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -17,9 +15,8 @@ class UserResponse(BaseModel):
     created_at: datetime
 
 
-# -----------------------------
 # PRODUCT SCHEMAS
-# -----------------------------
+
 class ProductBase(BaseModel):
     name: str
     description: str | None = None
@@ -37,7 +34,7 @@ class ProductResponse(ProductBase):
     owner_id: int
     owner: UserResponse  
 
-#CART SCHEMAS
+#CART SCHEMAS AND CART ITEM SCHEMAS
 
 class CartItemAdd(BaseModel):
     product_id: int
@@ -64,10 +61,8 @@ class CartResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
-# -----------------------------
 # ORDER & ORDER ITEM SCHEMAS
-# -----------------------------
+
 class OrderItemCreate(BaseModel):
     product_id: int
     quantity: int = Field(gt=0, description="Quantity must be at least 1")
@@ -92,6 +87,29 @@ class OrderResponse(BaseModel):
     status: str
     created_at: datetime
     items: list[OrderItemResponse]
+
+#ORDER SCHEMAS 
+
+class OrderItemResponse(BaseModel):
+    id: int
+    product_id: int | None
+    quantity: int
+    price_at_purchase: float
+    product: ProductResponse | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OrderResponse(BaseModel):
+    id: int
+    user_id: int
+    total_price: float
+    status: str
+    created_at: datetime
+    items: list[OrderItemResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 
