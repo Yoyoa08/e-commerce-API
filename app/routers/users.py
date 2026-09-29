@@ -2,14 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app import models, schemas, utils
 from app.database import get_db
+from app.oauth2 import get_current_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    
-    existing_user = (db.query(models.User).filter(models.User.email == user.email).first())
+    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
 
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
@@ -23,10 +23,12 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     return new_user
 
+
 @router.get("/", response_model=list[schemas.UserResponse])
 def get_users(db: Session = Depends(get_db)):
     users = db.query(models.User).all()
     return users
+
 
 @router.get("/{id}", response_model=schemas.UserResponse)
 def get_user(id: int, db: Session = Depends(get_db)):
@@ -38,16 +40,22 @@ def get_user(id: int, db: Session = Depends(get_db)):
 
 @router.put("/{id}", response_model=schemas.UserResponse)
 def update_user(
-    id: int, updated_user: schemas.UserCreate, db: Session = Depends(get_db)):
+    id: int, 
+    updated_user: schemas.UserCreate, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    if current_user.id != id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Not authorized to update another user's account"
+        )
 
     user_query = db.query(models.User).filter(models.User.id == id)
     user = user_query.first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with id {id} was not found",
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {id} was not found")
 
     existing_email = (
         db.query(models.User)
@@ -56,10 +64,7 @@ def update_user(
     )
 
     if existing_email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already in use by another account",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already in use by another account")
 
     hashed_pwd = utils.hash_password(updated_user.password)
     user_query.update({"email": updated_user.email, "password": hashed_pwd}, synchronize_session=False)
@@ -70,7 +75,17 @@ def update_user(
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(id: int, db: Session = Depends(get_db)):
+def delete_user(
+    id: int, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    if current_user.id != id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Not authorized to delete another user's account"
+        )
+
     user_query = db.query(models.User).filter(models.User.id == id)
     user = user_query.first()
 

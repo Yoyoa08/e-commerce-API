@@ -9,7 +9,10 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.OrderResponse)
 def checkout(db: Session = Depends(get_db), current_user: models.User = Depends(oauth2.get_current_user)):
+
+
     # 1. Fetch user's cart
+
     cart = db.query(models.Cart).filter(models.Cart.user_id == current_user.id).first()
     if not cart or not cart.items:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Your cart is empty")
