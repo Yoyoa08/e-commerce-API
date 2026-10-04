@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from app import models
 from app.database import engine
-from app.routers import products, users, auth, cart, orders
-
+from app.routers import products, users, auth, cart, orders, payment
+from dotenv import load_dotenv
+load_dotenv() 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="E-Commerce API")
@@ -12,7 +13,7 @@ app.include_router(users.router)
 app.include_router(products.router)
 app.include_router(cart.router)
 app.include_router(orders.router)
-
+app.include_router(payment.router)
 
 @app.get("/")
 def root():
