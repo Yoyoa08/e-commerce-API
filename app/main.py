@@ -1,9 +1,12 @@
+from dotenv import load_dotenv
+load_dotenv()  
+
 from fastapi import FastAPI
 from app import models
 from app.database import engine
 from app.routers import products, users, auth, cart, orders, payment
-from dotenv import load_dotenv
-load_dotenv() 
+
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="E-Commerce API")
